@@ -1,0 +1,17 @@
+[
+  {
+    "title": "社团",
+    "link": "/club",
+    "type": "path"
+  },
+  {
+    "title": "活动",
+    "link": "/activity",
+    "type": "path"
+  },
+  {
+    "title": "新闻",
+    "link": "https://news.hzau.edu.cn/",
+    "type": "link"
+  }
+]
