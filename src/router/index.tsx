@@ -7,6 +7,7 @@ import Activity from "../pages/activity";
 import ClubDetail from "../pages/club/c-pages/clubDetail";
 import ActivityDetail from "../pages/activity/c-pages/activityDetail";
 import User from "../pages/user";
+import ManageClub from "../pages/user/c-pages/manageClub";
 const routes: RouteObject[] = [
   {
     path: "/",
@@ -29,7 +30,7 @@ const routes: RouteObject[] = [
     element: <Activity />,
     children: [
       {
-        path: "/activity/detail/:id",
+        path: "/activity/detail/:name",
         element: <ActivityDetail />,
       },
     ],
@@ -37,6 +38,12 @@ const routes: RouteObject[] = [
   {
     path: "/user",
     element: <User />,
+    children: [
+      {
+        path: "/user/manageClub",
+        element: <ManageClub />,
+      },
+    ],
   },
   {
     path: "*",

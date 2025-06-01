@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { logout } from "@/store/features/userSlice";
+import { logout } from "@/pages/user/store/user";
 import { UserInfoContainer, UserName, LogoutButton } from "./styled";
 import { useNavigate } from "react-router-dom";
 const UserInfo = memo(() => {

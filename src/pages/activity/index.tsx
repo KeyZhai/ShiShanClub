@@ -23,6 +23,7 @@ import {
 } from "./styled";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchActivityList } from "./store/activity";
+import { shallowEqual } from "react-redux";
 // 模拟活动数据
 export const MOCK_ACTIVITIES = [
   {
@@ -123,50 +124,109 @@ export const MOCK_ACTIVITIES = [
   },
 ];
 
+// 定义活动数据类型
+interface Activity {
+  activityname: string;
+  activitytype: string;
+  activitytimetype: string;
+  clubname: string;
+  activityshortdescription: string;
+  activitystartdate: string;
+  activityplace: string;
+}
+
 // 活动类型选项
 const TYPE_OPTIONS = [
   { value: "all", label: "全部活动" },
-  { value: "lecture", label: "讲座" },
-  { value: "workshop", label: "工作坊" },
-  { value: "competition", label: "竞赛" },
-  { value: "social", label: "社交活动" },
+  { value: "讲座", label: "讲座" },
+  { value: "分享会", label: "分享会" },
+  { value: "竞赛", label: "竞赛" },
+  { value: "社会实践", label: "社会实践" },
 ];
 
 // 活动状态选项
 const STATUS_OPTIONS = [
   { value: "all", label: "全部" },
-  { value: "ongoing", label: "进行中" },
-  { value: "upcoming", label: "即将开始" },
-  { value: "past", label: "已结束" },
+  { value: "进行中", label: "进行中" },
+  { value: "即将开始", label: "即将开始" },
+  { value: "已结束", label: "已结束" },
 ];
 
 // 主活动页面组件
 const Activity = () => {
-  const [activities, setActivities] = useState(MOCK_ACTIVITIES);
   const [loading, setLoading] = useState(false);
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clubFilter, setClubFilter] = useState("all");
+  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
+
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
+  const { activityList } = useAppSelector(
+    (state) => ({
+      activityList: state.activity.activityList,
+    }),
+    shallowEqual
+  );
+
+  // 获取活动列表数据
   useEffect(() => {
     dispatch(fetchActivityList());
-  }, []);
+  }, [dispatch]);
 
-  const { activityList } = useAppSelector((state) => ({
-    activityList: state.activity.activityList,
-  }));
-  
+  // 基于筛选条件过滤活动
+  useEffect(() => {
+    setLoading(true);
+
+    let filtered = [...activityList] as Activity[];
+
+    // 应用类型筛选
+    if (typeFilter !== "all") {
+      filtered = filtered.filter(
+        (activity) => activity.activitytype === typeFilter
+      );
+    }
+
+    // 应用状态筛选
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(
+        (activity) => activity.activitytimetype === statusFilter
+      );
+    }
+
+    // 应用社团筛选
+    if (clubFilter !== "all") {
+      filtered = filtered.filter(
+        (activity) => activity.clubname === clubFilter
+      );
+    }
+
+    setFilteredActivities(filtered);
+    setLoading(false);
+  }, [activityList, typeFilter, statusFilter, clubFilter]);
+
+  // 获取所有社团选项
+  const clubOptions = [
+    { value: "all", label: "全部社团" },
+    ...Array.from(new Set(activityList.map((a: any) => a.clubname)))
+      .filter(Boolean)
+      .map((club) => ({
+        value: club,
+        label: club,
+      })),
+  ];
+
   // 处理活动点击
-  const handleActivityClick = (id: number) => {
-    navigate(`/activity/detail/${id}`);
+  const handleActivityClick = (name: string) => {
+    navigate(`/activity/detail/${name}`);
   };
 
   const params = useParams();
-  if (params.id) {
+  if (params.name) {
     return <Outlet />;
   }
+
   return (
     <ActivityContainer>
       <ActivityHeader>
@@ -206,25 +266,27 @@ const Activity = () => {
           <div style={{ textAlign: "center", padding: "40px 0" }}>
             <Spin size="large" />
           </div>
-        ) : activities.length > 0 ? (
+        ) : filteredActivities.length > 0 ? (
           <ActivityList>
-            {activities.map((activity) => (
+            {filteredActivities.map((activity) => (
               <ActivityCard
-                key={activity.id}
-                onClick={() => handleActivityClick(activity.id)}
+                key={activity.activityname}
+                onClick={() => handleActivityClick(activity.activityname)}
               >
                 <CardContent>
-                  <CardTitle>{activity.title}</CardTitle>
+                  <CardTitle>{activity.activityname}</CardTitle>
                   <CardInfo>
                     <InfoItem>
-                      <CalendarOutlined /> {activity.date} {activity.time}
+                      <CalendarOutlined /> {activity.activitystartdate}
                     </InfoItem>
                     <InfoItem>
-                      <EnvironmentOutlined /> {activity.location}
+                      <EnvironmentOutlined /> {activity.activityplace}
                     </InfoItem>
                   </CardInfo>
-                  <CardDescription>{activity.description}</CardDescription>
-                  <ActivityClub>{activity.club}</ActivityClub>
+                  <CardDescription>
+                    {activity.activityshortdescription}
+                  </CardDescription>
+                  <ActivityClub>{activity.clubname}</ActivityClub>
                 </CardContent>
               </ActivityCard>
             ))}

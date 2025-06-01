@@ -8,6 +8,7 @@ import {
   QqOutlined,
   LeftOutlined,
 } from "@ant-design/icons";
+import { message } from "antd";
 import {
   ClubDetailContainer,
   ClubDetailContent,
@@ -38,8 +39,9 @@ const ClubDetail: FC = () => {
     dispatch(fetchClubDetail(name as string));
   }, []);
 
-  const { clubDetail } = useAppSelector((state) => ({
+  const { clubDetail, token } = useAppSelector((state) => ({
     clubDetail: state.club.clubDetail,
+    token: state.user.token,
   }));
 
   const handleCloseModal = () => {
@@ -48,7 +50,13 @@ const ClubDetail: FC = () => {
 
   // 处理申请加入
   const handleJoin = () => {
-    setSignupVisible(true);
+    if (token) {
+      // 如果用户已登录，直接打开报名弹窗
+      setSignupVisible(true);
+    } else {
+      // 如果用户未登录，提示登录
+      message.error("请先登录");
+    }
   };
 
   // 返回社团列表
@@ -98,7 +106,11 @@ const ClubDetail: FC = () => {
           申请加入{clubDetail.clubname}
         </JoinButton>
         {signupVisible && (
-          <SignModal visible={signupVisible} onClose={handleCloseModal} />
+          <SignModal
+            visible={signupVisible}
+            onClose={handleCloseModal}
+            name={clubDetail.clubname}
+          />
         )}
       </ClubDetailContent>
     </ClubDetailContainer>

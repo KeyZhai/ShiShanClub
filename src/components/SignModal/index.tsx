@@ -1,28 +1,50 @@
 import { memo } from "react";
 import type { FC, ReactNode } from "react";
 import { Modal, Form, Input, Button, Select, message } from "antd";
+import { joinClub, joinActivity } from "./service/signmodal";
 
 interface IProps {
   children?: ReactNode;
   visible: boolean;
+  name: string;
   onClose: () => void;
 }
 
-const SignModal: FC<IProps> = ({ visible, onClose }) => {
+const SignModal: FC<IProps> = ({ visible, onClose, name }) => {
   const [form] = Form.useForm();
 
   // 提交报名表单
   const handleSubmit = (values: any) => {
-    console.log("报名信息:", values);
-    message.success("报名成功！");
+    if (name.includes("活动")) {
+      // 实际应用中这里会发送API请求
+      joinActivity({ activityname: name, username: values.name })
+        .then((response) => {
+          console.log("报名结果:", response);
+          message.success("报名成功！");
+        })
+        .catch((error) => {
+          console.error("报名失败:", error);
+          message.error("报名失败，请稍后再试！");
+        });
+    } else {
+      // 实际应用中这里会发送API请求
+      joinClub({ clubname: name, username: values.name })
+        .then((response) => {
+          console.log("报名结果:", response);
+          message.success("报名成功！");
+        })
+        .catch((error) => {
+          console.error("报名失败:", error);
+          message.error("报名失败，请稍后再试！");
+        });
+    }
     onClose();
-    // 实际应用中这里会发送API请求
   };
 
   return (
     <div>
       {/* 报名表单模态框 */}
-      <Modal title="活动报名" open={visible} onCancel={onClose} footer={null}>
+      <Modal title="报名" open={visible} onCancel={onClose} footer={null}>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             name="name"

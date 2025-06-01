@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import userReducer from "./features/userSlice";
+import userReducer from "../pages/user/store/user";
 import clubReducer from "../pages/club/store/club";
 import activityReducer from "../pages/activity/store/activity";
 export const store = configureStore({

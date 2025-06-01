@@ -7,6 +7,9 @@ interface UserState {
   email: string;
   loading: "idle" | "pending" | "succeeded" | "failed";
   error: string | null;
+  token: string;
+  myClub: any[];
+  myJoinedActivity: any[];
 }
 
 // 初始状态
@@ -16,6 +19,9 @@ const initialState: UserState = {
   email: "",
   loading: "idle",
   error: null,
+  token: "",
+  myJoinedActivity: [],
+  myClub: [],
 };
 
 // 创建异步登录操作
@@ -69,6 +75,12 @@ const userSlice = createSlice({
       state.email = action.payload.email;
       state.isLoggedIn = true;
     },
+    setClubList: (state, action) => {
+      state.myJoinedActivity = action.payload.activityInfo;
+      state.myClub = action.payload.clubInfo;
+      console.log("设置社团列表", state.myClub);
+      console.log("设置活动列表", state.myJoinedActivity);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -77,10 +89,10 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log(action.payload);
         state.loading = "succeeded";
         state.isLoggedIn = true;
-        state.username = action.payload.data.user.data.nickname;
+        state.username = action.payload.data.user.data.username;
+        state.token = action.payload.data.token;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = "failed";
@@ -90,7 +102,7 @@ const userSlice = createSlice({
 });
 
 // 导出actions
-export const { logout, setUser } = userSlice.actions;
+export const { logout, setUser, setClubList } = userSlice.actions;
 
 // 导出reducer
 export default userSlice.reducer;

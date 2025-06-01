@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Spin, Tag } from "antd";
+import { Button, Tag, message } from "antd";
 import {
   CalendarOutlined,
   ClockCircleOutlined,
@@ -8,74 +8,58 @@ import {
   TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { MOCK_ACTIVITIES } from "../../index";
 import {
   ActivityContainer,
   ActivityContent,
   DetailContainer,
   DetailHeader,
   DetailTitle,
-  DetailBanner,
   DetailInfoBar,
   DetailInfoItem,
   DetailContent,
   SignupButton,
 } from "../../styled";
 import SignModal from "@/components/SignModal";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchActivityDetail } from "../../store/activity";
 // 活动详情组件
 const ActivityDetail = () => {
-  const { id } = useParams();
+  const { name } = useParams();
   const [signupVisible, setSignupVisible] = useState(false);
-  const [activity, setActivity] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const { activityDetail, token } = useAppSelector((state) => ({
+    activityDetail: state.activity.activityDetail,
+    token: state.user.token,
+  }));
+
+  useEffect(() => {
+    dispatch(fetchActivityDetail(name as string));
+  }, []);
+  console.log(activityDetail);
 
   const navigate = useNavigate();
   // 处理报名
   const handleSignup = () => {
-    console.log("点击报名按钮");
-    setSignupVisible(true);
+    if (token) {
+      setSignupVisible(true);
+    } else {
+      // 如果用户未登录，提示登录
+      message.error("请先登录");
+    }
   };
 
   const handleCloseModal = () => {
     setSignupVisible(false);
   };
 
-  // 获取活动详情
-  useEffect(() => {
-    setLoading(true);
-    // 模拟API请求
-    setTimeout(() => {
-      const foundActivity = MOCK_ACTIVITIES.find((a) => a.id === parseInt(id!));
-
-      if (foundActivity) {
-        setActivity(foundActivity);
-      }
-      setLoading(false);
-    }, 500);
-  }, [id]);
-
   // 返回列表
   const handleBack = () => {
     navigate("/activity");
   };
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "100px 0" }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  if (!activity) {
-    return (
-      <div style={{ textAlign: "center", padding: "100px 0" }}>
-        <h2>活动不存在</h2>
-        <Button type="primary" onClick={handleBack}>
-          返回活动列表
-        </Button>
-      </div>
-    );
+  // 添加加载检查
+  if (!activityDetail) {
+    return <ActivityContainer>''</ActivityContainer>;
   }
 
   return (
@@ -95,64 +79,68 @@ const ActivityDetail = () => {
 
         <DetailContainer>
           <DetailHeader>
-            <DetailTitle>{activity.title}</DetailTitle>
+            <DetailTitle>{activityDetail.activityname}</DetailTitle>
             <Tag
               color={
-                activity.status === "ongoing"
+                activityDetail.activitytimetype === "进行中"
                   ? "green"
-                  : activity.status === "upcoming"
+                  : activityDetail.activitytimetype === "即将开始"
                   ? "orange"
                   : "default"
               }
             >
-              {activity.status === "ongoing"
+              {activityDetail.activitytimetype === "进行中"
                 ? "进行中"
-                : activity.status === "upcoming"
+                : activityDetail.activitytimetype === "即将开始"
                 ? "即将开始"
                 : "已结束"}
             </Tag>
           </DetailHeader>
-
-          <DetailBanner src={activity.image} alt={activity.title} />
-
           <DetailInfoBar>
             <DetailInfoItem>
-              <CalendarOutlined /> 日期：{activity.date}
+              <CalendarOutlined /> 日期：{activityDetail.activitystartdate}
             </DetailInfoItem>
             <DetailInfoItem>
-              <ClockCircleOutlined /> 时间：{activity.time}
+              <ClockCircleOutlined /> 时间：
+              {activityDetail.activitystartdate} -
+              {activityDetail.activityenddate}
             </DetailInfoItem>
             <DetailInfoItem>
-              <EnvironmentOutlined /> 地点：{activity.location}
+              <EnvironmentOutlined /> 地点：{activityDetail.activityplace}
             </DetailInfoItem>
             <DetailInfoItem>
-              <TeamOutlined /> 主办方：{activity.club}
+              <TeamOutlined /> 主办方：{activityDetail.clubname}
             </DetailInfoItem>
             <DetailInfoItem>
-              <UserOutlined /> 已报名：{activity.currentParticipants}/
-              {activity.maxParticipants}
+              <UserOutlined /> 已报名：{activityDetail.activitynumber}
             </DetailInfoItem>
           </DetailInfoBar>
 
-          <DetailContent>{activity.details}</DetailContent>
+          <DetailContent>{activityDetail.activitydescription}</DetailContent>
 
           <SignupButton
             onClick={handleSignup}
             disabled={
-              activity.status === "past" ||
-              activity.currentParticipants >= activity.maxParticipants
+              activityDetail.activitytimetype === "已结束" ||
+              activityDetail.currentParticipants >=
+                activityDetail.maxParticipants
             }
           >
-            {activity.status === "past"
+            {activityDetail.activitytimetype === "已结束"
               ? "活动已结束"
-              : activity.currentParticipants >= activity.maxParticipants
+              : activityDetail.currentParticipants >=
+                activityDetail.maxParticipants
               ? "名额已满"
               : "立即报名"}
           </SignupButton>
         </DetailContainer>
       </ActivityContent>
       {signupVisible && (
-        <SignModal visible={signupVisible} onClose={handleCloseModal} />
+        <SignModal
+          visible={signupVisible}
+          onClose={handleCloseModal}
+          name={activityDetail.activityname + "活动"}
+        />
       )}
     </ActivityContainer>
   );

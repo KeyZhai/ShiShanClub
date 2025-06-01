@@ -15,7 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loginUser, registerUser } from "@/store/features/userSlice";
+import { loginUser, registerUser } from "@/pages/user/store/user";
 import { RootState } from "@/store";
 
 const { TabPane } = Tabs;
@@ -36,7 +36,6 @@ function Login() {
   }, [isLoggedIn, navigate]);
 
   const onFinishLogin = async (values: any) => {
-    console.log(values);
     try {
       await dispatch(
         loginUser({
@@ -53,7 +52,6 @@ function Login() {
   };
 
   const onFinishRegister = async (values: any) => {
-    console.log(values);
     await dispatch(
       registerUser({
         username: values.username,
